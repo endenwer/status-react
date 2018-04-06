@@ -39,15 +39,8 @@
       (realm/get-one-by-field :contact-group :group-id group-id)
       (object/get "contacts")))
 
-(defn- save-contacts
-  [identities contacts]
-  (doseq [contact-identity identities]
-    (when-not (.find contacts (fn [object _ _]
-                                (= contact-identity (object/get object "identity"))))
-      (.push contacts (clj->js {:identity contact-identity})))))
-
 (defn add-contacts
-  [group-id identities]
-  (let [contacts (get-contacts group-id)]
+  [chat-id identities]
+  (let [contacts (get-contacts chat-id)]
     (realm/write @realm/account-realm
-                 #(save-contacts identities contacts))))
+                 #(.apply (.-push contacts) contacts (clj->js identities)))))
