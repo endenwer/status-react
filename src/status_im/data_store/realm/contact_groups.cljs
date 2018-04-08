@@ -33,14 +33,16 @@
   (when-let [group (realm/get-one-by-field @realm/account-realm :contact-group :group-id group-id)]
     (realm/delete @realm/account-realm group)))
 
-(defn get-contacts
+(defn get-by-id-obj
   [group-id]
   (-> @realm/account-realm
-      (realm/get-one-by-field :contact-group :group-id group-id)
-      (object/get "contacts")))
+      (realm/get-one-by-field :contact-group :group-id group-id)))
 
 (defn add-contacts
-  [chat-id identities]
-  (let [contacts (get-contacts chat-id)]
+  [group-id identities]
+  (let [group    (get-by-obj-id group-id)
+        contacts (object/get group "contacts")]
     (realm/write @realm/account-realm
-                 #(.apply (.-push contacts) contacts (clj->js identities)))))
+                 #(aset group "contacts"
+                        (clj->js (into #{} (concat identities
+                                                   (realm/js-object->clj contacts))))))))
